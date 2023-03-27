@@ -46,7 +46,7 @@ def get_action_and_input(llm_output: str) -> Tuple[str, str]:
     prefixes = ["Question:", "Thought:", "Action:", "Action Input:", "Thought:"]
 
     if not any(prefix in llm_output for prefix in prefixes):
-        llm_output = "Final Answer: " + llm_output
+        llm_output = FINAL_ANSWER_ACTION + llm_output
     
     if FINAL_ANSWER_ACTION in llm_output:
         return "Final Answer", llm_output.split(FINAL_ANSWER_ACTION)[-1].strip()
