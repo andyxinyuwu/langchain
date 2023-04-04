@@ -63,7 +63,22 @@ class Agent(BaseModel):
         return thoughts
 
     def _get_next_action(self, full_inputs: Dict[str, str]) -> AgentAction:
-        full_output = self.llm_chain.predict(**full_inputs)
+        import re
+        full_output = ''
+        if 'agent_scratchpad' in full_inputs \
+                and re.compile('Action Input: [\s\S]*\nObservation: 1.[\s\S]*\nThought:').search(full_inputs['agent_scratchpad']) is not None:
+            full_output = '''I now know the final answer
+Final Answer: Here are some {} available on Pietra:
+{}'''.format(full_inputs['agent_scratchpad'].split('Action Input: ')[1].split('\nObservation: ')[0],
+             full_inputs['agent_scratchpad'].split('\nObservation: ')[1].split('Thought:')[0])
+        elif 'agent_scratchpad' in full_inputs \
+                and re.compile('Action Input: [\s\S]*\nObservation: [\s\S]*\nThought:').search(full_inputs['agent_scratchpad']) is not None:
+            full_output = '''
+Final Answer: {}
+            '''.format(full_inputs['agent_scratchpad'].split('\nObservation: ')[1].split('Thought:')[0])
+        else:
+            full_output = self.llm_chain.predict(**full_inputs)
+
         parsed_output = self._extract_tool_and_input(full_output)
         while parsed_output is None:
             full_output = self._fix_text(full_output)
