@@ -24,6 +24,16 @@ class MRKLOutputParser(AgentOutputParser):
         return FORMAT_INSTRUCTIONS
 
     def parse(self, text: str) -> Union[AgentAction, AgentFinish]:
+        # if "AI:" is in the llm_output, replace it with "Final Answer:"
+        if "AI:" in text:
+            text = FINAL_ANSWER_ACTION + text.split("AI:", 1)[1]
+
+        # If None of these prefixes are in the text, add "Final Answer:" in the front
+        prefixes = ["Question:", "Thought:", "Action:", "Action Input:", "Thought:"]
+
+        if not any(prefix in text for prefix in prefixes):
+            text = FINAL_ANSWER_ACTION + text
+
         includes_answer = FINAL_ANSWER_ACTION in text
         regex = (
             r"Action\s*\d*\s*:[\s]*(.*?)[\s]*Action\s*\d*\s*Input\s*\d*\s*:[\s]*(.*)"
